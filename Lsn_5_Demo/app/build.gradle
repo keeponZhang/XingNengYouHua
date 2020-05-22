@@ -12,7 +12,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ""
-                abiFilters "x86_64","x86"
+                abiFilters "x86_64"
                 //指定android的编译器
                 arguments '-DANDROID_TOOLCHAIN=gcc'
             }
