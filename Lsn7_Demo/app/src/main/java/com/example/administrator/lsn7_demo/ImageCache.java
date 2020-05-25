@@ -94,7 +94,10 @@ public class ImageCache {
         //获取程序最大可用内存 单位是M
         int memoryClass=am.getMemoryClass();
         //参数表示能够缓存的内存最大值  单位是byte
-        memoryCache=new LruCache<String,Bitmap>(memoryClass/8*1024*1024){
+        // int maxSize = memoryClass / 8 * 1024 * 1024;
+        int maxSize = 10904*5;
+        // Log.e("TAG", "ImageCache init:" +maxSize);
+        memoryCache=new LruCache<String,Bitmap>(maxSize){
             /**
              * @return value占用的内存大小
              */
@@ -102,8 +105,11 @@ public class ImageCache {
             protected int sizeOf(String key, Bitmap value) {
                 //19之前   必需同等大小，才能复用  inSampleSize=1
                 if(Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT){
+                    // Log.e("TAG", "ImageCache sizeOf:"+value.getAllocationByteCount());
                     return value.getAllocationByteCount();
                 }
+                int byteCount = value.getByteCount();
+                Log.e("TAG", "ImageCache sizeOf byteCount:"+byteCount);
                 return value.getByteCount();
             }
             /**
@@ -111,13 +117,16 @@ public class ImageCache {
              */
             @Override
             protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue) {
-                Log.e("TAG", "ImageCache entryRemoved-------------------:");
+
                 if(oldValue.isMutable()){//如果是设置成能复用的内存块，拉到java层来管理
                     //3.0以下   Bitmap   native
                     //3.0以后---8.0之前  java
                     //8。0开始      native
                     //把这些图片放到一个复用沲中
+
                     reuseablePool.add(new WeakReference<Bitmap>(oldValue,referenceQueue));
+                    Log.e("TAG",
+                            "ImageCache entryRemoved 放进复用池-------------------:"+reuseablePool.size());
                 }else{
                     //oldValue就是移出来的对象
                     oldValue.recycle();
@@ -153,6 +162,7 @@ public class ImageCache {
         }
         Bitmap reuseable=null;
         Iterator<WeakReference<Bitmap>> iterator = reuseablePool.iterator();
+        Log.w("TAG", "ImageCache getReuseable size:" + reuseablePool.size());
         while(iterator.hasNext()){
             Bitmap bitmap=iterator.next().get();
             if(null!=bitmap){
@@ -174,13 +184,16 @@ public class ImageCache {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
             return bitmap.getWidth()==w && bitmap.getHeight()==h && inSampleSize==1;
         }
-        Log.w("TAG", "ImageCache checkInBitmap:");
+
         if(inSampleSize>=1){
             w/=inSampleSize;
             h/=inSampleSize;
         }
         int byteCount=w*h*getPixelsCount(bitmap.getConfig());
-        return byteCount<=bitmap.getAllocationByteCount();
+        boolean b = byteCount <= bitmap.getAllocationByteCount();
+        Log.w("TAG", "ImageCache checkInBitmap byteCount:"+byteCount+"  复用池的bitmap" +
+                ".getAllocationByteCount()="+bitmap.getAllocationByteCount()+" return="+b);
+        return b;
     }
 
     private int getPixelsCount(Bitmap.Config config) {
@@ -252,6 +265,7 @@ public class ImageCache {
                 snapshot.close();
             }
         }
+        Log.d("TAG", "ImageCache getBitmapFromDisk key:"+key+" 返回bitmap="+bitmap);
         return bitmap;
     }
 
