@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.util.Log;
 import android.util.LruCache;
 
 import com.example.administrator.lsn7_demo.disk.DiskLruCache;
@@ -110,6 +111,7 @@ public class ImageCache {
              */
             @Override
             protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue) {
+                Log.e("TAG", "ImageCache entryRemoved-------------------:");
                 if(oldValue.isMutable()){//如果是设置成能复用的内存块，拉到java层来管理
                     //3.0以下   Bitmap   native
                     //3.0以后---8.0之前  java
@@ -129,6 +131,7 @@ public class ImageCache {
            diskLruCache = DiskLruCache.open(new File(dir), BuildConfig.VERSION_CODE, 1, 10 * 1024 * 1024);
        }catch(Exception e){
            e.printStackTrace();
+           Log.e("TAG", "ImageCache init Exception e:"+e);
        }
 
        getReferenceQueue();
@@ -171,6 +174,7 @@ public class ImageCache {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
             return bitmap.getWidth()==w && bitmap.getHeight()==h && inSampleSize==1;
         }
+        Log.w("TAG", "ImageCache checkInBitmap:");
         if(inSampleSize>=1){
             w/=inSampleSize;
             h/=inSampleSize;

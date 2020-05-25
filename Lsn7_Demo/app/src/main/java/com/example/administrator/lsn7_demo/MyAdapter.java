@@ -54,6 +54,7 @@ public class MyAdapter extends BaseAdapter {
             //reuseable能复用的内存
             //从磁盘找
             bitmap = ImageCache.getInstance().getBitmapFromDisk(String.valueOf(position),reuseable);
+            Log.e("TAG", "MyAdapter getView 复用池 reuseable:"+reuseable);
             //如果磁盘中也没缓存,就从网络下载
             if(null==bitmap){
                 bitmap=ImageResize.resizeBitmap(context,R.mipmap.wyz_p,80,80,false,reuseable);
