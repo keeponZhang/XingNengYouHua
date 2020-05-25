@@ -9,6 +9,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -98,9 +99,10 @@ public class BigView extends View implements GestureDetector.OnGestureListener,V
         mRect.right=mImageWidth;
         //获取一个缩放因子
         mScale=mViewWidth/(float)mImageWidth;
+        Log.e("TAG", "BigView onMeasure mScale:" +mScale);
         //高度就根据缩放比进行获取
         mRect.bottom=(int)(mViewHeight/mScale);
-
+        Log.e("TAG", "BigView onMeasure  mRect.bottom:" + mRect.bottom+" mViewHeight="+mViewHeight);
     }
 
     /**
@@ -161,7 +163,9 @@ public class BigView extends View implements GestureDetector.OnGestureListener,V
         //上下移动的时候，需要改变显示区域   改mRect
         mRect.offset(0,(int)distanceY);
         //处理移动时已经移到了两个顶端的问题
+
         if(mRect.bottom>mImageHeight){
+            Log.e("TAG", "BigView onScroll mRect.top:" +mRect.top);
             mRect.bottom=mImageHeight;
             mRect.top=mImageHeight-(int)(mViewHeight/mScale);
         }
